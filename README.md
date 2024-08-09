@@ -7,6 +7,9 @@ This script helps you find recipes based on the ingredients you have. It searche
 - Python 3.7 or later
 - The required Python packages are listed in the `requirements.txt` file.
 
+## Dataset Availability 
+- The one I've used can be found here: https://www.kaggle.com/datasets/pes12017000148/food-ingredients-and-recipe-dataset-with-images 
+
 ## Setup
 
 1. Clone this repository or download the script.
