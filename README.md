@@ -29,10 +29,28 @@ This script helps you find recipes based on the ingredients you have. It searche
 
 4. Place your images in a directory of your choice.
 
+# Alternate 
+This project is a smart ingredient-based recipe recommendation system powered by Python. Originally built as a terminal-based application, it has now been enhanced with a clean and responsive Tkinter GUI to improve usability and interaction.
+
+### Features:
+Upload a CSV file containing recipes and cleaned ingredients.
+
+Select a directory of corresponding images.
+
+Enter ingredients to find the top 3 matching recipes.
+
+Displays recipe titles, ingredients, instructions, and image previews.
+
+Handles missing or unmatched recipes gracefully.
+
 ## Usage
 
 Run the script:
 
 ```bash
-python recipe_finder.py
+python Meal Rec.py
+
+
+python Meal rec gui.py
+
 
