@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gohan — Meal Recommender</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="grain"></div>
+<header class="site-header">
+<div class="header-rule"></div>
+<span class="header-tag">Ingredient-Based · Unsupervised</span>
+<div class="header-rule"></div>
+</header>
+<div class="container">
+<div class="hero">
+<p class="eyebrow">What's in your kitchen?</p>
+<h1>Gohan</h1>
+<p class="subtitle">Tell this magical system what you have. It'll tell you what to make.</p>
+</div>
+<div class="search-section">
+<div class="search-box">
+<label for="ingredients" class="field-label">YOUR INGREDIENTS</label>
+<textarea
+id="ingredients"
+placeholder="garlic · lemon · thyme · rice"
+spellcheck="false"
+></textarea>
+<p class="field-hint">Separate ingredients with spaces or commas</p>
+</div>
+<button class="recommend-btn" onclick="getRecommendations()">
+<span class="btn-text">Find Meals</span>
+<span class="btn-arrow">→</span>
+</button>
+</div>
+<div id="loading" class="loading hidden">
+<div class="loading-dots">
+<span></span><span></span><span></span>
+</div>
+<p>Searching the pantry…</p>
+</div>
+<div id="results" class="results-grid"></div>
+</div>
+<footer class="site-footer">
+<span>Gohan</span>
+<span class="footer-divider">·</span>
+<span>Meal Recommendation System made with love by <a href="https://github.com/chibihime" target="_blank" rel="noopener noreferrer" class="footer-link">chibihime</a></span>
+</footer>
+<script src="script.js"></script>
+</body>
+</html>
