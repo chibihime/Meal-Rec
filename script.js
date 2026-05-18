@@ -2,9 +2,14 @@ const BACKEND_URL = "https://gohan-backend.onrender.com";
 
 async function getRecommendations() {
 
-    const ingredients = document.getElementById("ingredients").value.trim();
-    const resultsDiv  = document.getElementById("results");
-    const loadingDiv  = document.getElementById("loading");
+    const ingredients =
+        document.getElementById("ingredients").value.trim();
+
+    const resultsDiv =
+        document.getElementById("results");
+
+    const loadingDiv =
+        document.getElementById("loading");
 
     if (!ingredients) {
         document.getElementById("ingredients").focus();
@@ -16,60 +21,146 @@ async function getRecommendations() {
 
     try {
 
-        const response = await fetch(`${BACKEND_URL}/recommend`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ ingredients, top_k: 6 })
-        });
+        const response = await fetch(
+            `${BACKEND_URL}/recommend`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: JSON.stringify({
+                    ingredients,
+                    top_k: 6
+                })
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}`);
+        }
 
         const data = await response.json();
+
+        console.log("API Response:", data);
+
         loadingDiv.classList.add("hidden");
 
-        if (!data.recommendations || data.recommendations.length === 0) {
+        if (!data.recipes || data.recipes.length === 0) {
+
             resultsDiv.innerHTML = `
-                <div style="grid-column:1/-1;padding:48px;text-align:center;color:var(--muted);font-style:italic;">
+                <div style="
+                    grid-column:1/-1;
+                    padding:48px;
+                    text-align:center;
+                    color:var(--muted);
+                    font-style:italic;
+                ">
                     No meals found for those ingredients.
-                </div>`;
+                </div>
+            `;
+
             return;
         }
 
-        data.recommendations.forEach((meal, i) => {
-            const score   = meal.score ?? meal.similarity ?? 0;
-            const pct     = Math.round(score * 100);
-            const name    = meal.name ?? meal.meal ?? meal.title ?? "Unknown";
-            const card    = document.createElement("div");
+        data.recipes.forEach((meal, i) => {
+
+            const score =
+                data.scores?.[i] ?? 0;
+
+            const pct =
+                Math.round(score * 100);
+
+            const name =
+                meal.Title ?? "Unknown";
+
+            const image =
+                meal.Image_URL ?? "";
+
+            const instructions =
+                meal.Instructions ?? "";
+
+            const card =
+                document.createElement("div");
+
             card.className = "meal-card";
-            card.style.animationDelay = `${i * 0.07}s`;
+
+            card.style.animationDelay =
+                `${i * 0.07}s`;
+
             card.innerHTML = `
-                <p class="meal-number">0${i + 1}</p>
-                <p class="meal-name">${name}</p>
-                <p class="meal-match">Match score — ${pct}%</p>
+                <p class="meal-number">
+                    0${i + 1}
+                </p>
+
+                <img
+                    src="${image}"
+                    alt="${name}"
+                    class="meal-image"
+                >
+
+                <p class="meal-name">
+                    ${name}
+                </p>
+
+                <p class="meal-match">
+                    Match score — ${pct}%
+                </p>
+
                 <div class="match-bar-wrap">
-                    <div class="match-bar" style="width: 0%"
-                         data-width="${pct}%"></div>
-                </div>`;
+                    <div
+                        class="match-bar"
+                        style="width:0%"
+                        data-width="${pct}%">
+                    </div>
+                </div>
+
+                <p class="meal-description">
+                    ${instructions.substring(0, 140)}...
+                </p>
+            `;
+
             resultsDiv.appendChild(card);
         });
 
-        // Animate bars after paint
+        // Animate bars after render
         requestAnimationFrame(() => {
-            document.querySelectorAll(".match-bar").forEach(bar => {
-                bar.style.width = bar.dataset.width;
-            });
+
+            document
+                .querySelectorAll(".match-bar")
+                .forEach(bar => {
+
+                    bar.style.width =
+                        bar.dataset.width;
+                });
         });
 
     } catch (err) {
+
+        console.error("Frontend Error:", err);
+
         loadingDiv.classList.add("hidden");
+
         resultsDiv.innerHTML = `
-            <div style="grid-column:1/-1;padding:48px;text-align:center;
-                        color:var(--danger);font-family:var(--font-mono);font-size:0.75rem;">
-                Could not reach the server. Is the backend running?
-            </div>`;
-        console.error(err);
+            <div style="
+                grid-column:1/-1;
+                padding:48px;
+                text-align:center;
+                color:var(--danger);
+                font-family:var(--font-mono);
+                font-size:0.75rem;
+            ">
+                Could not reach the server:
+                ${err.message}
+            </div>
+        `;
     }
 }
 
 // Submit on Cmd/Ctrl + Enter
 document.addEventListener("keydown", e => {
-    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") getRecommendations();
+
+    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+        getRecommendations();
+    }
 });
