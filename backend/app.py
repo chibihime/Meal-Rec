@@ -56,7 +56,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["https://chibihim.github.io"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -138,10 +138,12 @@ def recommend(req: QueryRequest):
     results = cluster_df.iloc[top_idx].copy()
 
     # IMAGE URLS
+    BASE_URL = "https://gohan-backend.onrender.com"
+
     results["Image_URL"] = results[
         "Image_Name"
     ].apply(
-        lambda x: f"http://127.0.0.1:8000/images/{x}"
+        lambda x: f"{BASE_URL}/images/{x}"
     )
 
     return {
