@@ -26,6 +26,7 @@ IMAGES_DIR = os.path.join(DATA_DIR, "images")
 # =====================================================
 
 try:
+
     cluster_model = joblib.load(
         os.path.join(MODELS_DIR, "cluster_model.pkl")
     )
@@ -45,6 +46,7 @@ try:
     print("✅ Models loaded successfully")
 
 except Exception as e:
+
     print(f"❌ Error loading models: {e}")
     raise e
 
@@ -56,7 +58,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://chibihime.github.io"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -77,6 +79,7 @@ if os.path.exists(IMAGES_DIR):
     print(f"✅ Serving images from: {IMAGES_DIR}")
 
 else:
+
     print(f"⚠️ Images directory not found: {IMAGES_DIR}")
 
 # =====================================================
@@ -88,34 +91,80 @@ class QueryRequest(BaseModel):
     top_k: int = 5
 
 # =====================================================
-# RECOMMENDATION ROUTE
+# HELPERS
+# =====================================================
+
+BASE_URL = "https://gohan-backend.onrender.com"
+
+def build_image_url(name):
+
+    possible_extensions = [
+        ".jpg",
+        ".jpeg",
+        ".png",
+        ".webp"
+    ]
+
+    for ext in possible_extensions:
+
+        image_path = os.path.join(
+            IMAGES_DIR,
+            f"{name}{ext}"
+        )
+
+        if os.path.exists(image_path):
+
+            return (
+                f"{BASE_URL}/images/"
+                f"{name}{ext}"
+            )
+
+    return ""
+
+# =====================================================
+# ROUTES
 # =====================================================
 
 @app.get("/")
 def home():
-    return {"message": "Meal Recommendation API Running"}
+
+    return {
+        "message": "Meal Recommendation API Running"
+    }
 
 @app.post("/recommend")
 def recommend(req: QueryRequest):
 
+    # =========================================
     # USER VECTOR
+    # =========================================
+
     user_vec = vectorizer.transform(
         [req.ingredients]
     )
 
     user_vec = svd.transform(user_vec)
 
+    # =========================================
     # PREDICT CLUSTER
+    # =========================================
+
     cluster_id = cluster_model.predict(
         user_vec
     )[0]
 
-    # FILTER CLUSTER
+    # =========================================
+    # FILTER RECIPES
+    # =========================================
+
     cluster_df = df[
         df["Cluster"] == cluster_id
     ]
 
+    # =========================================
     # RECIPE VECTORS
+    # =========================================
+
     recipe_vectors = vectorizer.transform(
         cluster_df["Cleaned_Ingredients"]
     )
@@ -124,32 +173,48 @@ def recommend(req: QueryRequest):
         recipe_vectors
     )
 
+    # =========================================
     # COSINE SIMILARITY
+    # =========================================
+
     similarities = cosine_similarity(
         user_vec,
         recipe_vectors
     )[0]
 
+    # =========================================
     # TOP RESULTS
+    # =========================================
+
     top_idx = np.argsort(
         similarities
     )[-req.top_k:][::-1]
 
-    results = cluster_df.iloc[top_idx].copy()
+    results = cluster_df.iloc[
+        top_idx
+    ].copy()
 
+    # =========================================
     # IMAGE URLS
-    BASE_URL = "https://gohan-backend.onrender.com"
+    # =========================================
 
     results["Image_URL"] = results[
         "Image_Name"
-    ].apply(
-        lambda x: f"{BASE_URL}/images/{x}"
-    )
+    ].apply(build_image_url)
+
+    # =========================================
+    # RESPONSE
+    # =========================================
 
     return {
+
         "cluster": int(cluster_id),
+
         "recipes": results.to_dict(
             orient="records"
         ),
-        "scores": similarities[top_idx].tolist()
+
+        "scores": similarities[
+            top_idx
+        ].tolist()
     }
