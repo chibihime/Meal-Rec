@@ -1,5 +1,5 @@
 # Gohan — Ingredient-Based Meal Recommendation System
-
+## Deployed Link : https://chibihime.github.io/Meal-Rec/
 ## Overview
 
 Gohan is an ingredient-based meal recommendation system that helps users discover recipes using ingredients already available in their kitchen. The system uses unsupervised machine learning techniques to cluster recipes and generate recommendations based on ingredient similarity.
