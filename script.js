@@ -1,9 +1,13 @@
+console.log("SCRIPT LOADED");
+
 const BACKEND_URL = "https://gohan-backend.onrender.com";
 
 async function getRecommendations() {
 
-    const ingredients =
-        document.getElementById("ingredients").value.trim();
+    console.log("BUTTON CLICKED");
+
+    const ingredientsInput =
+        document.getElementById("ingredients");
 
     const resultsDiv =
         document.getElementById("results");
@@ -11,18 +15,30 @@ async function getRecommendations() {
     const loadingDiv =
         document.getElementById("loading");
 
-    if (!ingredients) {
-        document.getElementById("ingredients").focus();
+    if (!ingredientsInput) {
+        console.error("ingredients input missing");
         return;
     }
 
-    resultsDiv.innerHTML = "";
-    loadingDiv.classList.remove("hidden");
+    const ingredients =
+        ingredientsInput.value.trim();
+
+    console.log("Ingredients:", ingredients);
+
+    if (!ingredients) {
+        alert("Enter ingredients");
+        return;
+    }
+
+    resultsDiv.innerHTML = "Loading...";
+    loadingDiv?.classList.remove("hidden");
 
     try {
 
+        console.log("Sending request...");
+
         const response = await fetch(
-            `${BACKEND_URL}/recommend`,
+            "https://gohan-backend.onrender.com/recommend",
             {
                 method: "POST",
                 headers: {
@@ -30,137 +46,70 @@ async function getRecommendations() {
                     "Accept": "application/json"
                 },
                 body: JSON.stringify({
-                    ingredients,
+                    ingredients: ingredients,
                     top_k: 6
                 })
             }
         );
 
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
+        console.log("Response received:", response);
 
-        const data = await response.json();
+        const text = await response.text();
 
-        console.log("API Response:", data);
+        console.log("RAW RESPONSE:", text);
 
-        loadingDiv.classList.add("hidden");
+        const data = JSON.parse(text);
 
-        if (!data.recipes || data.recipes.length === 0) {
+        console.log("PARSED DATA:", data);
 
-            resultsDiv.innerHTML = `
-                <div style="
-                    grid-column:1/-1;
-                    padding:48px;
-                    text-align:center;
-                    color:var(--muted);
-                    font-style:italic;
-                ">
-                    No meals found for those ingredients.
-                </div>
-            `;
+        loadingDiv?.classList.add("hidden");
+
+        resultsDiv.innerHTML = "";
+
+        if (!data.recipes) {
+
+            resultsDiv.innerHTML =
+                "<p>No recipes returned</p>";
 
             return;
         }
 
-        data.recipes.forEach((meal, i) => {
+        data.recipes.forEach((recipe, i) => {
 
-            const score =
-                data.scores?.[i] ?? 0;
-
-            const pct =
-                Math.round(score * 100);
-
-            const name =
-                meal.Title ?? "Unknown";
-
-            const image =
-                meal.Image_URL ?? "";
-
-            const instructions =
-                meal.Instructions ?? "";
-
-            const card =
+            const div =
                 document.createElement("div");
 
-            card.className = "meal-card";
+            div.className = "meal-card";
 
-            card.style.animationDelay =
-                `${i * 0.07}s`;
-
-            card.innerHTML = `
-                <p class="meal-number">
-                    0${i + 1}
-                </p>
+            div.innerHTML = `
+                <h2>${recipe.Title}</h2>
 
                 <img
-                    src="${image}"
-                    alt="${name}"
-                    class="meal-image"
+                    src="${recipe.Image_URL}"
+                    width="250"
                 >
 
-                <p class="meal-name">
-                    ${name}
-                </p>
-
-                <p class="meal-match">
-                    Match score — ${pct}%
-                </p>
-
-                <div class="match-bar-wrap">
-                    <div
-                        class="match-bar"
-                        style="width:0%"
-                        data-width="${pct}%">
-                    </div>
-                </div>
-
-                <p class="meal-description">
-                    ${instructions.substring(0, 140)}...
+                <p>
+                    ${recipe.Instructions.substring(0, 120)}...
                 </p>
             `;
 
-            resultsDiv.appendChild(card);
-        });
-
-        // Animate bars after render
-        requestAnimationFrame(() => {
-
-            document
-                .querySelectorAll(".match-bar")
-                .forEach(bar => {
-
-                    bar.style.width =
-                        bar.dataset.width;
-                });
+            resultsDiv.appendChild(div);
         });
 
     } catch (err) {
 
-        console.error("Frontend Error:", err);
+        console.error("FULL ERROR:", err);
 
-        loadingDiv.classList.add("hidden");
+        loadingDiv?.classList.add("hidden");
 
         resultsDiv.innerHTML = `
-            <div style="
-                grid-column:1/-1;
-                padding:48px;
-                text-align:center;
-                color:var(--danger);
-                font-family:var(--font-mono);
-                font-size:0.75rem;
-            ">
-                Could not reach the server:
-                ${err.message}
-            </div>
+            <pre style="color:red;">
+${err.stack}
+            </pre>
         `;
     }
 }
 
-// Submit on Cmd/Ctrl + Enter
-document.addEventListener("keydown", e => {
-
-    if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
-        getRecommendations();
-    }
-});
+window.getRecommendations =
+    getRecommendations;
